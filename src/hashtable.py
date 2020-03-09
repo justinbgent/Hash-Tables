@@ -23,6 +23,7 @@ class HashTable:
 
         You may replace the Python hash with DJB2 as a stretch goal.
         '''
+        #hash(key) % self.capacity
         return hash(key)
 
 
@@ -51,8 +52,22 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        index = self._hash_mod(key)
+        if self.storage[index] == None:
+            self.storage[index] = LinkedPair(key, value)
+        else:
+            linkedPair = self.storage[index]
+            # code isn't fully dry, if statement appears twice. Statement enables overriding past LinkedPairs
+            if linkedPair.key == key:
+                linkedPair.value = value
+                return
+            # goes to the last link to prepare to add next value
+            while linkedPair.next:
+                linkedPair = linkedPair.next
+                if linkedPair.key == key:
+                    linkedPair.value = value
+                    return
+            linkedPair.next = LinkedPair(key, value)
 
 
     def remove(self, key):
@@ -63,7 +78,31 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        linkedPair = self.storage[index]
+        if linkedPair:
+            previous = None
+            while True:
+                if linkedPair.key == key:
+                    # Now I found the value that needs to be removed
+                    if previous:
+                        previous.next = linkedPair.next
+                        linkedPair = None # linkedPair not the first item in list
+                        break
+                    elif self.storage[index].next:
+                        self.storage[index] = self.storage[index].next # linkedPair first item in list
+                        break
+                    else:
+                        self.storage[index] = None # linkedPair has no next or previous (only item stored in index)
+                        break
+                else:
+                    if linkedPair.next == None:
+                        print("Warning: Key Not Found")
+                        break
+                    previous = linkedPair
+                    linkedPair = linkedPair.next
+        else:
+            print("Warning: Key Not Found")
 
 
     def retrieve(self, key):
@@ -74,7 +113,19 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        linkedPair = self.storage[index]
+        if linkedPair:
+            while True:
+                if linkedPair.key == key:
+                    return linkedPair.value
+                else:
+                    if linkedPair.next:
+                        linkedPair = linkedPair.next
+                    else:
+                        return None
+        else:
+            return None
 
 
     def resize(self):
@@ -84,8 +135,18 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        self.capacity *= 2
+        newStorage = [None] * self.capacity
+        oldStorage = self.storage
+        self.storage = newStorage
 
+        for i in oldStorage:
+            if i:
+                self.insert(i.key, i.value)
+                linkedPair = i
+                while linkedPair.next:
+                    linkedPair = linkedPair.next
+                    self.insert(linkedPair.key, linkedPair.value)
 
 
 if __name__ == "__main__":
