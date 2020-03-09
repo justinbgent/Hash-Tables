@@ -56,11 +56,18 @@ class HashTable:
         if self.storage[index] == None:
             self.storage[index] = LinkedPair(key, value)
         else:
-            lastLink = self.storage[index]
-            while lastLink.next:
-                lastLink = lastLink.next
-            lastLink.next = LinkedPair(key, value)
-
+            linkedPair = self.storage[index]
+            # code isn't fully dry, if statement appears twice. Statement enables overriding past LinkedPairs
+            if linkedPair.key == key:
+                linkedPair.value = value
+                return
+            # goes to the last link to prepare to add next value
+            while linkedPair.next:
+                linkedPair = linkedPair.next
+                if linkedPair.key == key:
+                    linkedPair.value = value
+                    return
+            linkedPair.next = LinkedPair(key, value)
 
 
     def remove(self, key):
@@ -130,12 +137,16 @@ class HashTable:
         '''
         self.capacity *= 2
         newStorage = [None] * self.capacity
+        oldStorage = self.storage
+        self.storage = newStorage
 
-        for i in self.storage:
+        for i in oldStorage:
             if i:
-                pass
-            else:
-                continue
+                self.insert(i.key, i.value)
+                linkedPair = i
+                while linkedPair.next:
+                    linkedPair = linkedPair.next
+                    self.insert(linkedPair.key, linkedPair.value)
 
 
 if __name__ == "__main__":
